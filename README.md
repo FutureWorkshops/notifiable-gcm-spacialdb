@@ -1,0 +1,2 @@
+notifiable-gcm-spacialdb
+========================
