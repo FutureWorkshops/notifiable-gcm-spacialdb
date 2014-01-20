@@ -1,4 +1,5 @@
 require 'notifiable'
+require 'gcm'
 
 module Notifiable
   module Gcm
