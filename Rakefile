@@ -8,6 +8,8 @@ namespace :ci do
     RSpec::Core::RakeTask.new(:spec)
   end
   
+  task :prepare
+  
   desc "Run all CI tests"
   task :test => ['ci:test:spec']
 end
