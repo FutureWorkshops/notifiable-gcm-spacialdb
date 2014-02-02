@@ -36,9 +36,17 @@ module Notifiable
     				body = JSON.parse(response.fetch(:body, "{}"))
     				results = body.fetch("results", [])
     				results.each_with_index do |result, idx|
+              # Remove the token if it is marked NotRegistered (user deleted the App for example)
     					if result["error"].eql? "NotRegistered"
     						device_tokens[idx].update_attribute('is_valid', false)
               else
+                
+                # Update the token if a canonical ID is returned
+                if result["registration_id"]
+                  device_tokens[idx].update_attribute('token', result["registration_id"])
+                end
+                
+                # Mark as processed
                 processed(notification, device_tokens[idx])
               end
     				end          
