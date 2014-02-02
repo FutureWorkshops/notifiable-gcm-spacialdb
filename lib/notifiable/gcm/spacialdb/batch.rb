@@ -36,7 +36,7 @@ module Notifiable
     				body = JSON.parse(response.fetch(:body, "{}"))
     				results = body.fetch("results", [])
     				results.each_with_index do |result, idx|
-    					if result["error"]
+    					if result["error"].eql? "NotRegistered"
     						device_tokens[idx].update_attribute('is_valid', false)
               else
                 processed(notification, device_tokens[idx])
