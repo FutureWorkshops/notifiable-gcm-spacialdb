@@ -37,7 +37,7 @@ module Notifiable
     				results = body.fetch("results", [])
     				results.each_with_index do |result, idx|
               # Remove the token if it is marked NotRegistered (user deleted the App for example)
-    					if result["error"].eql? "NotRegistered"
+    					if ["InvalidRegistration", "NotRegistered"].include? result["error"] 
     						device_tokens[idx].update_attribute('is_valid', false)
               else
                 
