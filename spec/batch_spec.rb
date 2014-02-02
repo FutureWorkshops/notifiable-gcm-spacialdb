@@ -26,6 +26,17 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     Notifiable::NotificationDeviceToken.count.should == 1
   end 
   
+  it "invalidates a token" do    
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "NotRegistered" }]}')  
+        
+    Notifiable.batch do |b|
+      b.add(n, u)
+    end
+    
+    Notifiable::NotificationDeviceToken.count.should == 0
+    d.is_valid.should == false
+  end 
+  
 end
 
 User = Struct.new(:device_token) do
