@@ -33,6 +33,15 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     d.is_valid.should == false
   end 
   
+  it "updates a token to the canonical ID" do    
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 1, "results": [{ "message_id": "1:08", "registration_id": "GHJ12345" }]}')  
+        
+    Notifiable.batch {|b| b.add(n, u)}
+    
+    Notifiable::NotificationDeviceToken.count.should == 1
+    d.token.should eql "GHJ12345"
+  end 
+  
 end
 
 User = Struct.new(:device_token) do
