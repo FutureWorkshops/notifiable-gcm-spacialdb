@@ -28,7 +28,7 @@ module Notifiable
 
   			private
   			def send_batch(notification, device_tokens)
-          if Notifiable.delivery_method == :test || Notifiable.env == 'test'
+          if Notifiable.delivery_method == :test
             device_tokens.each {|d| processed(notification, d)}
           else
     				gcm = ::GCM.new(Notifiable.gcm_api_key)

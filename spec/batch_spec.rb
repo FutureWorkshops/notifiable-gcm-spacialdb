@@ -8,23 +8,22 @@ describe Notifiable::Gcm::Spacialdb::Batch do
   let(:u) { User.new(d) }
   
   it "sends a single gcm notification" do    
-          
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}')   
     
     g.send_notification(n, d)
     g.close
-    Notifiable::NotificationDeviceToken.count.should == 1
-    # todo check stub
     
+    Notifiable::NotificationDeviceToken.count.should == 1
   end
   
   it "sends a single gcm notification in a batch" do    
-    
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}')  
+        
     Notifiable.batch do |b|
       b.add(n, u)
     end
-    Notifiable::NotificationDeviceToken.count.should == 1
     
-    # todo check stub
+    Notifiable::NotificationDeviceToken.count.should == 1
   end 
   
 end

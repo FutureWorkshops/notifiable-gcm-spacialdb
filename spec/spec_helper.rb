@@ -12,6 +12,7 @@ require 'database_cleaner'
 require 'rails'
 require 'notifiable'
 require 'gcm'
+require 'webmock/rspec'
 require File.expand_path("../../lib/notifiable/gcm/spacialdb",  __FILE__)
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
