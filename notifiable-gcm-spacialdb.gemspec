@@ -19,14 +19,15 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "notifiable-rails"
-  spec.add_dependency "gcm"
+  spec.add_dependency "gcm", "~> 0.0.6"
  
   spec.add_development_dependency "bundler", "~> 1.3"
-  spec.add_development_dependency "rake"
-  spec.add_development_dependency "rspec"
-  spec.add_development_dependency "simplecov"
-  spec.add_development_dependency "simplecov-rcov"
-  spec.add_development_dependency "sqlite3"
-  spec.add_development_dependency "database_cleaner"
+  spec.add_development_dependency "rake", "~> 10.1.1"
+  spec.add_development_dependency "rspec", "~> 2.14.1"
+  spec.add_development_dependency "simplecov", "~> 0.8.2"
+  spec.add_development_dependency "simplecov-rcov", "~> 0.2.3"
+  spec.add_development_dependency "sqlite3", "~> 1.3.8"
+  spec.add_development_dependency "database_cleaner", "~> 1.2.0"
+  spec.add_development_dependency "webmock", "~> 1.17.1"
   
 end
