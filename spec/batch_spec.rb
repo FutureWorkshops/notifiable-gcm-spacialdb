@@ -24,8 +24,17 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     Notifiable::NotificationDeviceToken.count.should == 1
   end 
   
-  it "invalidates a token" do    
+  it "marks a unregistered token as invalid" do    
     stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "NotRegistered" }]}')  
+        
+    Notifiable.batch {|b| b.add(n, u)}
+    
+    Notifiable::NotificationDeviceToken.count.should == 0
+    d.is_valid.should == false
+  end 
+  
+  it "marks an invalid token as invalid" do    
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "InvalidRegistration" }]}')  
         
     Notifiable.batch {|b| b.add(n, u)}
     
