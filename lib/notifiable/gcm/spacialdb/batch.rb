@@ -5,6 +5,13 @@ module Notifiable
   module Gcm
     module Spacialdb
   		class Batch < Notifiable::NotifierBase
+        
+        attr_accessor :api_key, :batch_size
+        
+        def initialize
+          @batch_size = 1000          
+        end
+                
         def batch
           @batch ||= {}
         end
@@ -15,7 +22,7 @@ module Notifiable
           self.batch[notification.id] = [] if self.batch[notification.id].nil?
           self.batch[notification.id] << device_token        								
           tokens = self.batch[notification.id]
-          if tokens.count >= Notifiable.gcm_batch_size
+          if tokens.count >= self.batch_size
             send_batch(notification, tokens)
           end
     		end
@@ -31,8 +38,11 @@ module Notifiable
           if Notifiable.delivery_method == :test
             device_tokens.each {|d| processed(notification, d)}
           else
-    				gcm = ::GCM.new(Notifiable.gcm_api_key)
-    				response = gcm.send_notification(device_tokens.collect{|dt| dt.token}, {:data => {:message => notification.message}})
+    				gcm = ::GCM.new(self.api_key)
+            
+            message = notification.provider_value(device_tokens.first.provider, :message)
+            
+    				response = gcm.send_notification(device_tokens.collect{|dt| dt.token}, {:data => {:message => message}})
     				body = JSON.parse(response.fetch(:body, "{}"))
     				results = body.fetch("results", [])
     				results.each_with_index do |result, idx|

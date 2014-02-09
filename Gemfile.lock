@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    notifiable-gcm-spacialdb (0.1.4)
+    notifiable-gcm-spacialdb (0.2.0)
       gcm (~> 0.0.6)
-      notifiable-rails
+      notifiable-rails (>= 0.4.0)
 
 GEM
   remote: https://rubygems.org/
@@ -33,7 +33,7 @@ GEM
       thread_safe (~> 0.1)
       tzinfo (~> 0.3.37)
     addressable (2.3.5)
-    arel (4.0.1)
+    arel (4.0.2)
     atomic (1.1.14)
     builder (3.1.4)
     crack (0.4.1)
@@ -58,7 +58,7 @@ GEM
     minitest (4.7.5)
     multi_json (1.8.4)
     multi_xml (0.5.5)
-    notifiable-rails (0.2.0)
+    notifiable-rails (0.4.0)
       rails (~> 4.0.0)
     polyglot (0.3.3)
     rack (1.5.2)
