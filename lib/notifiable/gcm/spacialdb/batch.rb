@@ -40,15 +40,8 @@ module Notifiable
           else
     				gcm = ::GCM.new(self.api_key)
             
-            data = {}
-            
-            # message
-            message = notification.provider_value(device_tokens.first.provider, :message)
-            data[:message] = message if message    
-            
-            # custom attributes
-            custom_attributes = notification.provider_value(device_tokens.first.provider, :data)
-            data.merge! custom_attributes if custom_attributes    
+            data = {:message => notification.message}
+            data.merge! notification.params if notification.params    
             
             # send
     				response = gcm.send_notification(device_tokens.collect{|dt| dt.token}, {:data => data})
