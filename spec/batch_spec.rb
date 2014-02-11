@@ -17,7 +17,7 @@ describe Notifiable::Gcm::Spacialdb::Batch do
   end
   
   it "sends custom attributes" do
-    n.update_attribute(:payload, {:gcm => {:data => {:custom_id => 123456}}})
+    n.update_attribute(:params, {:custom_id => 123456})
         
     stub_request(:post, "https://android.googleapis.com/gcm/send")
       .with(:body => {:registration_ids => ["ABC123"], :data => {:message => n.message, :custom_id => 123456}})
