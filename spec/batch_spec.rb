@@ -13,7 +13,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     g.send_notification(n, d)
     g.close
     
-    Notifiable::NotificationDeviceToken.count.should == 1
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 0
   end
   
   it "sends custom attributes" do
@@ -26,7 +27,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     g.send_notification(n, d)
     g.close
     
-    Notifiable::NotificationDeviceToken.count.should == 1
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 0
   end
   
   it "sends a single gcm notification in a batch" do    
@@ -34,7 +36,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
         
     Notifiable.batch {|b| b.add(n, u)}
     
-    Notifiable::NotificationDeviceToken.count.should == 1
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 0
   end 
   
   it "marks a unregistered token as invalid" do    
@@ -42,7 +45,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
         
     Notifiable.batch {|b| b.add(n, u)}
     
-    Notifiable::NotificationDeviceToken.count.should == 0
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 4
     d.is_valid.should == false
   end 
   
@@ -51,7 +55,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
         
     Notifiable.batch {|b| b.add(n, u)}
     
-    Notifiable::NotificationDeviceToken.count.should == 0
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 2
     d.is_valid.should == false
   end 
   
@@ -60,7 +65,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
         
     Notifiable.batch {|b| b.add(n, u)}
     
-    Notifiable::NotificationDeviceToken.count.should == 1
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 0
     d.token.should eql "GHJ12345"
   end 
   
