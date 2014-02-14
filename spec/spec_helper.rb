@@ -19,6 +19,8 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 db_path = 'spec/support/db/test.sqlite3'
 DatabaseCleaner.strategy = :truncation
 
+Rails.logger = Logger.new(STDOUT)
+
 RSpec.configure do |config|  
   config.mock_with :rspec
   config.order = "random"
