@@ -87,6 +87,9 @@ module Notifiable
             9   
           when "InvalidPackageName"
             10
+          else
+            -1
+            Rails.logger.warn "Unknown notification status: #{error_message}"
           end
         end
       end
