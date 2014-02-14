@@ -56,15 +56,39 @@ module Notifiable
                 # Update the token if a canonical ID is returned
                 if result["registration_id"]
                   device_tokens[idx].update_attribute('token', result["registration_id"])
-                end
-                
-                # Mark as processed
-                processed(notification, device_tokens[idx])
+                end                
               end
+              
+              processed(notification, device_tokens[idx], error_code(result["error"]))
     				end          
           end
           self.batch.delete(notification.id)
   			end
+        
+        def error_code(error_message)
+          case error_message
+          when "MissingRegistration"
+            1
+          when "InvalidRegistration"
+            2
+          when "MismatchSenderId"
+            3
+          when "NotRegistered"
+            4
+          when "MessageTooBig"
+            5
+          when "InvalidDataKey"
+            6
+          when "InvalidTtl"
+            7
+          when "Unavailable"
+            8
+          when "InternalServerError" 
+            9   
+          when "InvalidPackageName"
+            10
+          end
+        end
       end
     end
   end
