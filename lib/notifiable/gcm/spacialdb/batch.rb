@@ -45,22 +45,26 @@ module Notifiable
             
             # send
     				response = gcm.send_notification(device_tokens.collect{|dt| dt.token}, {:data => data})
-    				body = JSON.parse(response.fetch(:body, "{}"))
-    				results = body.fetch("results", [])
-    				results.each_with_index do |result, idx|
-              # Remove the token if it is marked NotRegistered (user deleted the App for example)
-    					if ["InvalidRegistration", "NotRegistered"].include? result["error"] 
-    						device_tokens[idx].update_attribute('is_valid', false)
-              else
+            if response[:status_code] == 200
+      				body = JSON.parse(response.fetch(:body, "{}"))
+      				results = body.fetch("results", [])
+      				results.each_with_index do |result, idx|
+                # Remove the token if it is marked NotRegistered (user deleted the App for example)
+      					if ["InvalidRegistration", "NotRegistered"].include? result["error"] 
+      						device_tokens[idx].update_attribute('is_valid', false)
+                else
                 
-                # Update the token if a canonical ID is returned
-                if result["registration_id"]
-                  device_tokens[idx].update_attribute('token', result["registration_id"])
-                end                
-              end
+                  # Update the token if a canonical ID is returned
+                  if result["registration_id"]
+                    device_tokens[idx].update_attribute('token', result["registration_id"])
+                  end                
+                end
               
-              processed(notification, device_tokens[idx], error_code(result["error"]))
-    				end          
+                processed(notification, device_tokens[idx], error_code(result["error"]))
+      				end 
+            else
+              Rails.logger.error "Sending notification id: #{notification.id} code: #{response[:status_code]} response: #{response[:response]}"
+            end         
           end
           self.batch.delete(notification.id)
   			end

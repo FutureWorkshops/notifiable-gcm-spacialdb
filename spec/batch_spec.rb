@@ -70,6 +70,14 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     d.token.should eql "GHJ12345"
   end 
   
+  it "deals gracefully with an unauthenticated key" do    
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '<html>Message</html>', :status => 401)  
+        
+    Notifiable.batch {|b| b.add(n, u)}
+    
+    Notifiable::NotificationStatus.count.should == 0
+  end 
+  
 end
 
 User = Struct.new(:device_token) do
