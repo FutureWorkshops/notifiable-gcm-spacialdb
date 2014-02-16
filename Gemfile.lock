@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    notifiable-gcm-spacialdb (0.4.2)
+    notifiable-gcm-spacialdb (0.4.3)
       gcm (~> 0.0.6)
       notifiable-rails (>= 0.6.0)
 
