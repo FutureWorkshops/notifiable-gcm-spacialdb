@@ -52,14 +52,14 @@ module Notifiable
                 # Remove the token if it is marked NotRegistered (user deleted the App for example)
       					if ["InvalidRegistration", "NotRegistered"].include? result["error"] 
       						device_tokens[idx].update_attribute('is_valid', false)
-                else
                 
-                  # Update the token if a canonical ID is returned
-                  if result["registration_id"]
-                    device_tokens[idx].update_attribute('token', result["registration_id"])
-                  end                
+                # Process canonical IDs
+                elsif result["registration_id"] && Notifiable::DeviceToken.exists?(:token => result["registration_id"])
+                  device_tokens[idx].update_attribute('is_valid', false)                                        
+                elsif result["registration_id"]
+                  device_tokens[idx].update_attribute('token', result["registration_id"])                    
                 end
-              
+
                 processed(notification, device_tokens[idx], error_code(result["error"]))
       				end 
             else
