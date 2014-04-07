@@ -60,14 +60,29 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     d.is_valid.should == false
   end 
   
-  it "updates a token to the canonical ID" do    
+  it "updates a token to the canonical ID if it does not exist" do   
     stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 1, "results": [{ "message_id": "1:08", "registration_id": "GHJ12345" }]}')  
         
     Notifiable.batch {|b| b.add(n, u)}
     
     Notifiable::NotificationStatus.count.should == 1
     Notifiable::NotificationStatus.first.status = 0
+    Notifiable::DeviceToken.count.should == 1
     d.token.should eql "GHJ12345"
+  end 
+  
+  
+  it "marks a token as invalid if the canonical ID already exists" do  
+    Notifiable::DeviceToken.create(:token => "GHJ12345", :provider => :gcm)
+     
+    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 1, "results": [{ "message_id": "1:08", "registration_id": "GHJ12345" }]}')  
+        
+    Notifiable.batch {|b| b.add(n, u)}
+    
+    Notifiable::NotificationStatus.count.should == 1
+    Notifiable::NotificationStatus.first.status = 0
+    Notifiable::DeviceToken.count.should == 2
+    d.is_valid.should be_false
   end 
   
   it "deals gracefully with an unauthenticated key" do    
