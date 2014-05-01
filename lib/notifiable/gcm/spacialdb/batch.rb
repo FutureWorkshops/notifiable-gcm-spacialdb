@@ -18,30 +18,31 @@ module Notifiable
         
         # todo should be made threadsafe
         protected 
-  			def enqueue(notification, device_token)
+  			def enqueue(notification, device_token, params)
           self.batch[notification.id] = [] if self.batch[notification.id].nil?
           self.batch[notification.id] << device_token        								
           tokens = self.batch[notification.id]
           if tokens.count >= self.batch_size
-            send_batch(notification, tokens)
+            send_batch(notification, tokens, params)
           end
     		end
       
         def flush
           self.batch.each_pair do |notification_id, device_tokens|
-            send_batch(Notifiable::Notification.find(notification_id), device_tokens)
+            notification = Notifiable::Notification.find(notification_id)
+            send_batch(notification, device_tokens, custom_params(notification))
           end
         end
 
   			private
-  			def send_batch(notification, device_tokens)
+  			def send_batch(notification, device_tokens, params)
           if Notifiable.delivery_method == :test
-            device_tokens.each {|d| processed(notification, d)}
+            device_tokens.each {|d| processed(notification, d, 0)}
           else
     				gcm = ::GCM.new(self.api_key)
             
             data = {:message => notification.message}
-            data.merge! notification.params if notification.params    
+            data.merge! params    
             
             # send
     				response = gcm.send_notification(device_tokens.collect{|dt| dt.token}, {:data => data})
