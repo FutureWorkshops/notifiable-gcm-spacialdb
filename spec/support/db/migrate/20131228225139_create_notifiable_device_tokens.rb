@@ -5,7 +5,6 @@ class CreateNotifiableDeviceTokens < ActiveRecord::Migration
       t.string :token
     	t.string :provider
       t.string :device_id
-      t.boolean :is_valid, :default => true
       t.integer :user_id
       t.references :app
 
