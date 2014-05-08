@@ -31,28 +31,26 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     Notifiable::NotificationStatus.first.status = 0
   end
   
-  it "marks a unregistered token as invalid" do    
+  it "delete an unregistered token" do    
     stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "NotRegistered" }]}')  
         
     n1.batch do |n|
       n.add_device_token(d)
     end
         
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 4
-    d.is_valid.should == false
+    Notifiable::DeviceToken.count == 0
+    Notifiable::NotificationStatus.count.should == 0
   end 
   
-  it "marks an invalid token as invalid" do    
+  it "delete an invalid token" do    
     stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "InvalidRegistration" }]}')  
         
     n1.batch do |n|
       n.add_device_token(d)
     end
         
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 2
-    d.is_valid.should == false
+    Notifiable::DeviceToken.count == 0
+    Notifiable::NotificationStatus.count.should == 0
   end 
   
   it "updates a token to the canonical ID if it does not exist" do   
