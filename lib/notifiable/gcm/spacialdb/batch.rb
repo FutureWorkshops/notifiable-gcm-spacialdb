@@ -15,19 +15,17 @@ module Notifiable
         end
         
         protected 
-    			def enqueue(device_token)
+    			def enqueue(device_token, localized_notification)
             @batch << device_token        								
-            if @batch.count >= @batch_size
-              send_batch
-            end
+            send_batch(localized_notification) if @batch.count >= @batch_size
       		end
       
           def flush
-            send_batch unless @batch.empty?
+            send_batch(localized_notification(@batch.first)) unless @batch.empty?
           end
 
   			private
-    			def send_batch
+    			def send_batch(notification)
             if Notifiable.delivery_method == :test
               @batch.each {|d| processed(d, 0)}
             else
