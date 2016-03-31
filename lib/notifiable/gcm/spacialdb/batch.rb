@@ -6,18 +6,23 @@ module Notifiable
     module Spacialdb
   		class Batch < Notifiable::NotifierBase
         
-        attr_accessor :api_key, :batch_size
+        notifier_attribute :api_key, :batch_size
+                
+        def batch_size
+          @batch_size || 1000
+        end
         
         def initialize(env, notification)
           super(env, notification)
           @batch = []
-          @batch_size = 1000          
         end
         
         protected 
     			def enqueue(device_token, localized_notification)
+            raise "API Key missing" if @api_key.nil?
+            
             @batch << device_token        								
-            send_batch(localized_notification) if @batch.count >= @batch_size
+            send_batch(localized_notification) if @batch.count >= batch_size
       		end
       
           def flush
@@ -29,7 +34,7 @@ module Notifiable
             if Notifiable.delivery_method == :test
               @batch.each {|d| processed(d, 0)}
             else
-      				gcm = ::GCM.new(self.api_key)
+      				gcm = ::GCM.new(@api_key)
             
               data = {:message => notification.message}.merge(notification.send_params)            
       				response = gcm.send_notification(@batch.collect{|dt| dt.token}, {:data => data})

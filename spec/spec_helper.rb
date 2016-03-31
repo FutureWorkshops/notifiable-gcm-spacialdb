@@ -28,6 +28,9 @@ RSpec.configure do |config|
   
   config.before(:all) {
     
+    Notifiable.notifier_classes[:gcm] = Notifiable::Gcm::Spacialdb::Batch    
+    Notifiable::App.define_configuration_accessors(Notifiable.notifier_classes)
+    
     # DB setup
     ActiveRecord::Base.establish_connection(
      { :adapter => 'sqlite3',
