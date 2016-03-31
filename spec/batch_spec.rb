@@ -4,8 +4,12 @@ describe Notifiable::Gcm::Spacialdb::Batch do
   
   let(:a) { Notifiable::App.create }  
   let(:n1) { Notifiable::Notification.create(:app => a) }
-  let!(:ln) { Notifiable::LocalizedNotification.create(:message => "Test message", :params => {:flag => true}, :notification => n1, :locale => :en) }
-  let(:d) { Notifiable::DeviceToken.create(:token => "ABC123", :provider => :gcm, :app => a, :locale => :en) }
+  let!(:ln) { Notifiable::LocalizedNotification.create(:message => "Test message", :params => {:flag => true}, :notification => n1, :locale => 'en') }
+  let(:d) { Notifiable::DeviceToken.create(:token => "ABC123", :provider => :gcm, :app => a, :locale => 'en') }
+  
+  before(:each) do
+    a.gcm_api_key = "abc123"
+  end
   
   it "sends a single gcm notification" do    
     stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}')   
