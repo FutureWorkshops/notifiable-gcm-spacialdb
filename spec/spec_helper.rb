@@ -17,7 +17,7 @@ require 'byebug'
 require File.expand_path("../../lib/notifiable/gcm/spacialdb",  __FILE__)
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
-db_path = 'spec/support/db/test.sqlite3'
+db_path = 'spec/test.sqlite3'
 DatabaseCleaner.strategy = :truncation
 
 Rails.logger = Logger.new(STDOUT)
@@ -40,7 +40,8 @@ RSpec.configure do |config|
     )
     
     ActiveRecord::Migration.verbose = false
-    ActiveRecord::Migrator.migrate "spec/support/db/migrate"
+    notifiable_rails_path = Gem.loaded_specs['notifiable-rails'].full_gem_path
+    ActiveRecord::Migrator.migrate File.join(notifiable_rails_path, 'db', 'migrate')
     
     # todo start stub
   }

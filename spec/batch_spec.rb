@@ -2,89 +2,50 @@ require 'spec_helper'
 
 describe Notifiable::Gcm::Spacialdb::Batch do
   
-  let(:a) { Notifiable::App.create }  
-  let(:n1) { Notifiable::Notification.create(:app => a) }
-  let!(:ln) { Notifiable::LocalizedNotification.create(:message => "Test message", :params => {:flag => true}, :notification => n1, :locale => 'en') }
+  let(:app_configuration) { {save_notification_statuses: true, gcm: {api_key: 'abc123'}} }
+  let(:a) { Notifiable::App.create gcm_api_key: 'abc123', configuration: app_configuration }  
+  let(:n1) { Notifiable::Notification.create(app: a, message: 'Test message', parameters: {flag: true} ) }
   let(:d) { Notifiable::DeviceToken.create(:token => "ABC123", :provider => :gcm, :app => a, :locale => 'en') }
+  let!(:stubbed_request) { stub_request(:post, "https://gcm-http.googleapis.com/gcm/send").with(body: request_body).to_return(body: response_body) }
+  let(:request_body) { }
+  let(:response_body) { }
   
-  before(:each) do
-    a.gcm_api_key = "abc123"
-  end
-  
-  it "sends a single gcm notification" do    
-    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}')   
+  describe '#batch' do
+    before(:each) { n1.batch {|n| n.add_device_token(d)} }
     
-    n1.batch {|n| n.add_device_token(d)}
-        
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 0
-  end
-  
-  it "sends custom attributes" do        
-      stub_request(:post, "https://android.googleapis.com/gcm/send")
-               .with(:body => "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"localized_notification_id\":1}}")
-               .to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}') 
+    context 'single' do
+      let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":1}}" }
+      let(:response_body) { '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}' }
+      it { expect(Notifiable::NotificationStatus.count).to eq 1 }
+      it { expect(Notifiable::NotificationStatus.first.status).to eq 0 }
+    end
     
-    n1.batch {|n| n.add_device_token(d)}
-   
-   
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 0
+    context 'custom attributes' do
+      let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":1}}" }
+      let(:response_body) { '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}' }
+      it { expect(Notifiable::NotificationStatus.count).to eq 1 }
+      it { expect(Notifiable::NotificationStatus.first.status).to eq 0 }
+    end
+    
+    context 'deletes an unregistered token' do
+      let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":1}}" }
+      let(:response_body) { '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "NotRegistered" }]}' }
+      it { expect(Notifiable::NotificationStatus.count).to eq 0 }
+      it { expect(Notifiable::DeviceToken.count).to eq 0 }
+    end
+    
+    context 'id change' do
+      let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":1}}" }
+      let(:response_body) { '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 1, "results": [{ "message_id": "1:08", "registration_id": "GHJ12345" }]}' }
+      it { expect(Notifiable::NotificationStatus.count).to eq 1 }
+      it { expect(Notifiable::DeviceToken.count).to eq 1 }
+      it { expect(Notifiable::DeviceToken.first.token).to eq "GHJ12345" }
+    end
+    
+    context 'bad key' do
+      let!(:stubbed_request) { stub_request(:post, "https://gcm-http.googleapis.com/gcm/send").to_return(body: '<html>Message</html>', status: 401) }
+      it { expect(Notifiable::NotificationStatus.count).to eq 0 }
+    end
+    
   end
-  
-  it "marks a unregistered token as invalid" do    
-    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "NotRegistered" }]}')  
-        
-    n1.batch {|n| n.add_device_token(d)}
-        
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 4
-    d.is_valid.should == false
-  end 
-  
-  it "marks an invalid token as invalid" do    
-    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "InvalidRegistration" }]}')  
-        
-    n1.batch {|n| n.add_device_token(d)}
-        
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 2
-    d.is_valid.should == false
-  end 
-  
-  it "updates a token to the canonical ID if it does not exist" do   
-    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 1, "results": [{ "message_id": "1:08", "registration_id": "GHJ12345" }]}')  
-        
-    n1.batch {|n| n.add_device_token(d)}
-        
-    Notifiable::NotificationStatus.count.should == 1
-    Notifiable::NotificationStatus.first.status = 0
-    Notifiable::DeviceToken.count.should == 1
-    d.token.should eql "GHJ12345"
-  end 
-  
-  
-#  it "marks a token as invalid if the canonical ID already exists" do  
-#    Notifiable::DeviceToken.create(:token => "GHJ12345", :provider => :gcm)
-     
-#    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 1, "results": [{ "message_id": "1:08", "registration_id": "GHJ12345" }]}')  
-        
-#    n1.batch do |n|
-#      n.add_device_token(d)
-#    end
-        
-#    Notifiable::NotificationStatus.count.should == 1
-#    Notifiable::NotificationStatus.first.status = 0
-#    Notifiable::DeviceToken.count.should == 2
-#    d.is_valid.should be_false
-#  end 
-  
-  it "deals gracefully with an unauthenticated key" do    
-    stub_request(:post, "https://android.googleapis.com/gcm/send").to_return(:body => '<html>Message</html>', :status => 401)  
-        
-    n1.batch {|n| n.add_device_token(d)}
-
-    Notifiable::NotificationStatus.count.should == 0
-  end 
-  
 end
