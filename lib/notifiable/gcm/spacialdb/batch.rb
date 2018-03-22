@@ -35,7 +35,10 @@ module Notifiable
   			def send_batch(notification)
   				gcm = ::GCM.new(@api_key)
         
-          data = {:message => notification.message}.merge(notification.send_params)            
+          
+          data = {message: notification.message}
+          data[:title] = notification.title if notification.title
+          data = data.merge(notification.send_params)          
   				response = gcm.send_notification(batch.collect{|dt| dt.token}, {:data => data})
 
           if response[:status_code] == 200

@@ -14,7 +14,8 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     before(:each) { n1.batch {|n| n.add_device_token(d)} }
     
     context 'single' do
-      let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":1}}" }
+      let(:n1) { Notifiable::Notification.create(app: a, title: 'Test title', message: 'Test message', parameters: {flag: true} ) }      
+      let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"title\":\"Test title\",\"flag\":true,\"n_id\":1}}" }
       let(:response_body) { '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}' }
       it { expect(Notifiable::NotificationStatus.count).to eq 1 }
       it { expect(Notifiable::NotificationStatus.first.status).to eq 0 }
