@@ -44,7 +44,7 @@ module Notifiable
           if response[:status_code] == 200
     				process_success_response(response)
           else
-            Rails.logger.error "Sending notification id: #{notification.id} code: #{response[:status_code]} response: #{response[:response]}"
+            logger.error "Sending notification id: #{notification.id} code: #{response[:status_code]} response: #{response[:response]}"
           end         
           @batch = []
   			end

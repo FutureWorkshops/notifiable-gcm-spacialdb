@@ -1,0 +1,12 @@
+postgres: &postgres
+  adapter: postgresql
+  host: localhost
+  port: 5432
+
+development:
+  <<: *postgres
+  database: notifiable-gcm-spacialdb-development
+
+test:
+  <<: *postgres
+  database: notifiable-gcm-spacialdb-test
