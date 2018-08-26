@@ -65,7 +65,7 @@ module Notifiable
               dt.update_attribute('token', result["registration_id"])                    
             end
 
-            processed(dt, error_code(result["error"]))
+            processed(dt, error_code(result["error"]), result["error"])
   				end
 
         end
