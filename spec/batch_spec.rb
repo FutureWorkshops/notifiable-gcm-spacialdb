@@ -18,20 +18,23 @@ describe Notifiable::Gcm::Spacialdb::Batch do
       let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"title\":\"Test title\",\"flag\":true,\"n_id\":#{n1.id}}}" }
       let(:response_body) { '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}' }
       it { expect(Notifiable::NotificationStatus.count).to eq 1 }
-      it { expect(Notifiable::NotificationStatus.first.status).to eq 0 }
+      it { expect(Notifiable::NotificationStatus.first.status).to eq Notifiable::NotificationStatus::SENT_STATUS }
     end
     
     context 'custom attributes' do
       let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":#{n1.id}}}" }
       let(:response_body) { '{ "multicast_id": 108, "success": 1, "failure": 0, "canonical_ids": 0, "results": [{ "message_id": "1:08" }]}' }
       it { expect(Notifiable::NotificationStatus.count).to eq 1 }
-      it { expect(Notifiable::NotificationStatus.first.status).to eq 0 }
+      it { expect(Notifiable::NotificationStatus.first.status).to eq Notifiable::NotificationStatus::SENT_STATUS }
     end
     
     context 'deletes an unregistered token' do
       let(:request_body) { "{\"registration_ids\":[\"ABC123\"],\"data\":{\"message\":\"Test message\",\"flag\":true,\"n_id\":#{n1.id}}}" }
       let(:response_body) { '{ "multicast_id": 108, "success": 0, "failure": 1, "canonical_ids": 0, "results": [{ "error": "NotRegistered" }]}' }
       it { expect(Notifiable::NotificationStatus.count).to eq 1 }
+      it { expect(Notifiable::NotificationStatus.first.status).to eq Notifiable::NotificationStatus::REJECTED_STATUS }
+      it { expect(Notifiable::NotificationStatus.first.error_code).to eq 4 }
+      it { expect(Notifiable::NotificationStatus.first.error_message).to eq 'NotRegistered' }
       it { expect(Notifiable::DeviceToken.count).to eq 0 }
     end
     

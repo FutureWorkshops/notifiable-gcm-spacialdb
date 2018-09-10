@@ -55,17 +55,18 @@ module Notifiable
   				results.each_with_index do |result, i|
             dt = batch[i]
             
-            # Remove the token if it is marked NotRegistered (user deleted the App for example)
-  					if ["InvalidRegistration", "NotRegistered"].include? result["error"] 
-  					  dt.destroy
-            # Process canonical IDs
+            if result["error"]
+  					  dt.destroy if ["InvalidRegistration", "NotRegistered"].include? result["error"] 
+              processed(dt, Notifiable::NotificationStatus::REJECTED_STATUS, error_code(result["error"]), result["error"])
+              next; 
+              
             elsif result["registration_id"] && Notifiable::DeviceToken.exists?(:token => result["registration_id"])
               dt.destroy
             elsif result["registration_id"]
-              dt.update_attribute('token', result["registration_id"])                    
+              dt.update_attribute('token', result["registration_id"])
             end
-
-            processed(dt, error_code(result["error"]), result["error"])
+            
+            processed(dt)
   				end
 
         end
