@@ -6,7 +6,7 @@ describe Notifiable::Gcm::Spacialdb::Batch do
   let(:a) { Notifiable::App.create gcm_api_key: 'abc123', configuration: app_configuration }  
   let(:n1) { Notifiable::Notification.create(app: a, message: 'Test message', parameters: {flag: true} ) }
   let(:d) { Notifiable::DeviceToken.create(:token => "ABC123", :provider => :gcm, :app => a, :locale => 'en') }
-  let!(:stubbed_request) { stub_request(:post, "https://gcm-http.googleapis.com/gcm/send").with(body: request_body).to_return(body: response_body) }
+  let!(:stubbed_request) { stub_request(:post, "https://fcm.googleapis.com/fcm/send").with(body: request_body).to_return(body: response_body) }
   let(:request_body) { }
   let(:response_body) { }
   
@@ -47,7 +47,7 @@ describe Notifiable::Gcm::Spacialdb::Batch do
     end
     
     context 'bad key' do
-      let!(:stubbed_request) { stub_request(:post, "https://gcm-http.googleapis.com/gcm/send").to_return(body: '<html>Message</html>', status: 401) }
+      let!(:stubbed_request) { stub_request(:post, "https://fcm.googleapis.com/fcm/send").to_return(body: '<html>Message</html>', status: 401) }
       it { expect(Notifiable::NotificationStatus.count).to eq 0 }
     end
     

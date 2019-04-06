@@ -1,5 +1,5 @@
 require 'notifiable'
-require 'gcm'
+require 'fcm'
 
 module Notifiable
   module Gcm
@@ -33,13 +33,13 @@ module Notifiable
   			private
         
   			def send_batch(notification)
-  				gcm = ::GCM.new(@api_key)
+  				fcm = ::FCM.new(@api_key)
         
           
           data = {message: notification.message}
           data[:title] = notification.title if notification.title
           data = data.merge(notification.send_params)          
-  				response = gcm.send_notification(batch.collect{|dt| dt.token}, {:data => data})
+  				response = fcm.send(batch.collect{|dt| dt.token}, {:data => data})
 
           if response[:status_code] == 200
     				process_success_response(response)
